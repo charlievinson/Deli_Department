@@ -1,0 +1,3 @@
+﻿  src.cpp
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Track\Deli_Scale_Track\src.cpp(203,1): warning C4715: 'WndProc': not all control paths return a value
+  Deli_Scale_Track.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Track\Deli_Scale_Track\x64\Debug\Deli_Scale_Track.exe
