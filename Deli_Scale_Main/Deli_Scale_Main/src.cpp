@@ -1,4 +1,9 @@
 // compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c
+#pragma comment (lib, "comctl32")
+
+#pragma comment(linker,"\"/manifestdependency:type='win32' \
+name='Microsoft.Windows.Common-Controls' version='6.0.0.0' \
+processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +17,7 @@
 #include <string>
 #include <locale>
 #include <codecvt>
+
 
 #define BUTTON0 1000
 #define BUTTON1 1001
@@ -31,6 +37,8 @@
 #define BUTTON_PRE_PACK 1015
 #define BUTTON_NUMBER_OF_LABEL 1016
 #define BUTTON_TRACK 1017
+#define BUTTON_DECREASE_NUM_USE_DAYS 1018
+#define BUTTON_INCREASE_NUM_USE_DAYS 1019
 
 #define RANDOM_WEIGHT_BUTTON 1100
 #define INPUT_WEIGHT_BUTTON 1200
@@ -46,6 +54,7 @@
 #define PACKED_ON_DATE_EDITTEXT 130
 #define SELL_THRU_EDITTEXT 140
 #define SELL_THRU_DATE_EDITTEXT 150
+#define NUM_USE_DAYS_EDITTEXT 160
 
 
 using namespace std;
@@ -53,6 +62,7 @@ using namespace std;
 // setup wstring to string converter
 using convert_type = std::codecvt_utf8<wchar_t>;
 std::wstring_convert<convert_type, wchar_t> converter;
+
 
 // Global variables
 std::wstring fullNumber;
@@ -68,9 +78,10 @@ bool prePackOn = false;
 
 string currentStore = "ALBERTSON'S";
 string currentTare = "0.015";
-string currentDate = "3/20/2025";
+string currentDate = "04/17/2025";
 string currentWeight = "";
 string currentTotalPrice = "";
+//string currentNumUseDays = "";
 
 
 // Product class to store objects representing products and their respective codes and prices
@@ -81,14 +92,17 @@ public:
     string price = "";
     string salePrice = "";
     string perPound = "";
+    string ingredients = "";
+    string numUseDays = "";
 
 public:
     // constructor
-    Product(string c, string d, string p, string pp) {
+    Product(string c, string d, string p, string pp, string ii) {
         this->code = c;
         this->description = d;
         this->price = p;
         this->perPound = pp;
+        this->ingredients = ii;
     }
 
     // getter and setter methods
@@ -110,6 +124,19 @@ public:
 
     string getPerPound() {
         return this->perPound;
+    }
+
+    string getIngredients() {
+        return this->ingredients;
+    }
+
+    string getNumUseDays() {
+        return this->numUseDays;
+    }
+
+    void setNumUseDays(string newNumUseDays) {
+        this->numUseDays = newNumUseDays;
+        return;
     }
 };
 
@@ -141,7 +168,7 @@ public:
     }
 };
 
-Product currentProduct = Product("", "", "", "");
+Product currentProduct = Product("", "", "", "", "");
 
 // load product database function reads product database file and returns vector of Product objects representing each line in file
 vector<Product> loadProductDatabase() {
@@ -166,20 +193,33 @@ vector<Product> loadProductDatabase() {
         string currentDocumentDescription = "";
         string currentDocumentPrice = "";
         string currentDocumentPerPound = "";
+        string currentDocumentIngredients = "";
+        string currentDocumentNumUseDays = "";
         vector<int> delimiterIndices;
+        int finalDelimiterIndex;
 
         for (int i = 0; i < currentDocument.size(); i++) {
             if (currentDocument[i] == ',') {
                 delimiterIndices.push_back(i);
+            }
+            else if (currentDocument[i] == '|') {
+                finalDelimiterIndex = i;
+                break;
             }
         }
 
         currentDocumentCode = currentDocument.substr(0, delimiterIndices[0]);
         currentDocumentDescription = currentDocument.substr(delimiterIndices[0] + 1, delimiterIndices[1] - delimiterIndices[0] - 1);
         currentDocumentPrice = currentDocument.substr(delimiterIndices[1] + 1, delimiterIndices[2] - delimiterIndices[1] - 1);
-        currentDocumentPerPound = currentDocument.substr(delimiterIndices[2] + 1, currentDocument.size() - delimiterIndices[2] - 1);
+        currentDocumentPerPound = currentDocument.substr(delimiterIndices[2] + 1, 1);
+        currentDocumentNumUseDays = currentDocument.substr(delimiterIndices[3] + 1, 2);
+        
+        currentDocumentIngredients = currentDocument.substr(finalDelimiterIndex + 1, currentDocument.size() - finalDelimiterIndex);
 
-        Product singleProductFromDocument = Product(currentDocumentCode, currentDocumentDescription, currentDocumentPrice, currentDocumentPerPound);
+        Product singleProductFromDocument = Product(currentDocumentCode, currentDocumentDescription, currentDocumentPrice, currentDocumentPerPound, currentDocumentIngredients);
+        int numUseDaysInt = stoi(currentDocumentNumUseDays);
+        currentDocumentNumUseDays = to_string(numUseDaysInt);
+        singleProductFromDocument.setNumUseDays(currentDocumentNumUseDays);
         productsFromDocuments.push_back(singleProductFromDocument);
     }
 
@@ -203,6 +243,15 @@ void addSaleToDatabase(Sale sale) {
         sale_database_file << sale.totalPrice << endl;
 
         sale_database_file.close();
+    }
+}
+
+void addCurrentProductToTrackingFile(string currentProductCode) {
+    std::ofstream current_product_tracking("current_product_tracking.txt");
+
+    if (current_product_tracking.is_open()) {
+        current_product_tracking << currentProductCode << endl;
+        current_product_tracking.close();
     }
 }
 
@@ -232,11 +281,84 @@ string convertTotalPriceDoubleToString(double totalPriceDouble) {
     return totalPriceStringFormatted;
 }
 
+string calculateSellThruDate(string packedOnDate, string useByDays) {
+    string sellThruDate = "";
+    string packedOnDateMonth = packedOnDate.substr(0, 2);
+    string packedOnDateDay = packedOnDate.substr(3, 2);
+    string packedOnDateYear = packedOnDate.substr(6, 4);
+
+    int monthInt = stoi(packedOnDateMonth);
+    int dayInt = stoi(packedOnDateDay);
+    int yearInt = stoi(packedOnDateYear);
+    int useByDaysInt = stoi(useByDays);
+    
+    if (useByDaysInt > 30) {
+        return "error";
+    }
+
+    dayInt += useByDaysInt;
+
+    if (monthInt == 2) {
+        if (dayInt < 29) {
+        }
+        else {
+            dayInt -= 28;
+            monthInt += 1;
+        }
+    }
+
+    else if ((monthInt == 1) || (monthInt == 3) || (monthInt == 5) || (monthInt == 7) || (monthInt == 8) || (monthInt == 10)) {
+        if (dayInt < 32) {
+        }
+        else {
+            dayInt -= 31;
+            monthInt += 1;
+        }
+    }
+
+    else if ((monthInt == 4) || (monthInt == 6) || (monthInt == 9) || (monthInt == 11)) {
+        if (dayInt < 31) {
+        }
+        else {
+            dayInt -= 30;
+            monthInt += 1;
+        }
+    }
+
+    else if (monthInt == 12) {
+        if (dayInt < 32) {
+        }
+        else {
+            dayInt -= 31;
+            monthInt = 1;
+            yearInt += 1;
+        }
+    }
+
+    sellThruDate = to_string(monthInt) + "/" + to_string(dayInt) + "/" + to_string(yearInt);
+    return sellThruDate;
+
+}
+
+string trimDate(string untrimmedDate) {
+    string trimmedDate = "";
+    string untrimmedMonth = untrimmedDate.substr(0, 2);
+    string untrimmedDay = untrimmedDate.substr(3, 2);
+    string untrimmedYear = untrimmedDate.substr(6, 4);
+
+    int monthInt = stoi(untrimmedMonth);
+    int dayInt = stoi(untrimmedDay);
+    int yearInt = stoi(untrimmedYear);
+
+    trimmedDate = to_string(monthInt) + "/" + to_string(dayInt) + "/" + to_string(yearInt);
+    return trimmedDate;
+}
+
 // The main window class name.
 static TCHAR szWindowClass[] = _T("DesktopApp");
 
 // The string that appears in the application's title bar.
-static TCHAR szTitle[] = _T("Albertson's Deli Department");
+static TCHAR szTitle[] = _T("Deli Scale v1");
 
 // Stored instance handle for use in Win32 API calls such as FindResource
 HINSTANCE hInst;
@@ -298,7 +420,7 @@ int WINAPI WinMain(
     {
         MessageBox(NULL,
             _T("Call to CreateWindow failed!"),
-            _T("Albertson's Deli Department"),
+            _T("Deli Scale v1"),
             NULL);
 
         return 1;
@@ -324,13 +446,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PAINTSTRUCT ps;
     HDC hdc;
-    TCHAR departmentLabel[] = _T("Albertson's Deli");
+    TCHAR departmentLabel[] = _T("Department: Deli");
     TCHAR tareLabel[] = _T("TARE: ");
     TCHAR weightLabel[] = _T("lb: ");
     TCHAR priceLabel[] = _T("$/lb: ");
     TCHAR totalPriceLabel[] = _T("TOTAL $");
     TCHAR editTextText[50];
+    TCHAR currentNumUseDaysL[50];
     std::wstring currentDigit;
+
+    string currentDateTrimmed = trimDate(currentDate);
 
     //string productCodeString = products[1].getDescription();
 
@@ -350,12 +475,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     TCHAR fullDescriptionLabelSzTemp[10] = _T("");
     TCHAR currentDateSzFull[256] = _T("");
     TCHAR currentDateSzTemp[10] = _T("");
+    TCHAR currentDateTrimmedSzFull[256] = _T("");
+    TCHAR currentDateTrimmedSzTemp[10] = _T("");
+
+    TCHAR sellThruDateSzFull[256] = _T("");
+    TCHAR sellThruDateSzTemp[10] = _T("");
+    TCHAR ingredientsSzFull[256] = _T("");
+    TCHAR ingredientsSzTemp[10] = _T("");
+    TCHAR numUseDaysSzFull[256] = _T("");
+    TCHAR numUseDaysSzTemp[10] = _T("");
 
     switch (message)
     {
     case WM_CREATE:
 
     {
+        void InitCommonControlsEx();
 
         HWND productEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
@@ -713,7 +848,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_EX_CLIENTEDGE,
             _T("EDIT"),
             _T(""),
-            WS_CHILD | WS_VISIBLE,
+            WS_CHILD | WS_VISIBLE | WS_HSCROLL | ES_MULTILINE,
             20, // x position
             330, // y position
             600, // width
@@ -723,19 +858,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetModuleHandle(NULL),
             NULL);
 
-        HWND packedOnEditText = CreateWindowEx(
-            WS_EX_CLIENTEDGE,
-            _T("EDIT"),
-            _T("Packed On"),
-            WS_CHILD | WS_VISIBLE,
-            20, // x position
-            250, // y position
-            250, // width
-            30,  // height
-            hWnd,  // parent window
-            (HMENU)PACKED_ON_EDITTEXT, // menu
-            GetModuleHandle(NULL),
-            NULL);
+
 
         HWND packedOnDateEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
@@ -744,7 +867,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_CHILD | WS_VISIBLE,
             20, // x position
             280, // y position
-            250, // width
+            200, // width
             50,  // height
             hWnd,  // parent window
             (HMENU)PACKED_ON_DATE_EDITTEXT, // menu
@@ -753,28 +876,33 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         SendMessage(packedOnDateEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
 
-        HWND sellThruEditText = CreateWindowEx(
+
+
+        HWND numUseDaysEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
             _T("EDIT"),
-            _T("Sell Thru"),
-            WS_CHILD | WS_VISIBLE,
-            370, // x position
-            250, // y position
-            250, // width
-            30,  // height
+            _T(""),
+            WS_CHILD | WS_VISIBLE | ES_CENTER,
+            295, // x position
+            285, // y position
+            50, // width
+            40,  // height
             hWnd,  // parent window
-            (HMENU)SELL_THRU_EDITTEXT, // menu
+            (HMENU)NUM_USE_DAYS_EDITTEXT, // menu
             GetModuleHandle(NULL),
             NULL);
+
+        SendMessage(numUseDaysEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
 
         HWND sellThruDateEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
             _T("EDIT"),
             _T(""),
             WS_CHILD | WS_VISIBLE,
-            370, // x position
+            420, // x position
             280, // y position
-            250, // width
+            200, // width
             50,  // height
             hWnd,  // parent window
             (HMENU)SELL_THRU_DATE_EDITTEXT, // menu
@@ -782,6 +910,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             NULL);
 
         SendMessage(sellThruDateEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
+        HWND hwndButtonDecreaseNumUseDays = CreateWindow(
+            L"BUTTON",  // Predefined class; Unicode assumed 
+            L"-",      // Button text 
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+            240,         // x position 
+            285,         // y position 
+            40,        // Button width
+            40,        // Button height
+            hWnd,     // Parent window
+            (HMENU)BUTTON_DECREASE_NUM_USE_DAYS,       // No menu.
+            (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+            NULL);      // Pointer not needed.
+
+        HWND hwndButtonIncreaseNumUseDays = CreateWindow(
+            L"BUTTON",  // Predefined class; Unicode assumed 
+            L"+",      // Button text 
+            WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+            360,         // x position 
+            285,         // y position 
+            40,        // Button width
+            40,        // Button height
+            hWnd,     // Parent window
+            (HMENU)BUTTON_INCREASE_NUM_USE_DAYS,       // No menu.
+            (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+            NULL);      // Pointer not needed.
 
         HWND hwndButtonPrePack = CreateWindow(
             L"BUTTON",  // Predefined class; Unicode assumed 
@@ -999,6 +1153,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetDlgItemText(hWnd, TOTAL_PRICE_EDITTEXT, totalPriceLabel);
             SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, L"");
             SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, L"");
+            SetDlgItemText(hWnd, INGREDIENTS_EDITTEXT, L"");
+            SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, L"");
             productSelected = false;
             prePackOn = false;
 
@@ -1081,15 +1237,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 fullNumber.erase(0);
                 SetDlgItemText(hWnd, CODE_INPUT_EDITTEXT, L"");
                 SetDlgItemText(hWnd, PRODUCT_EDITTEXT, L"");
-                system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Search\\x64\\Debug\\Deli_Scale_Search.exe");
+                //system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Search\\x64\\Debug\\Deli_Scale_Search.exe");
                 break;
             }
             break;
         case BUTTON_TRACK:
-            fullNumber.erase(0);
-            SetDlgItemText(hWnd, CODE_INPUT_EDITTEXT, L"");
-            SetDlgItemText(hWnd, PRODUCT_EDITTEXT, L"");
-            system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Track\\x64\\Debug\\Deli_Scale_Track.exe");
+            if (productSelected) {
+                system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Tracking_Selection\\x64\\Debug\\Deli_Scale_Tracking_Selection.exe");
+            }
             break;
         case BUTTON_PRE_PACK:
             if (prePackOn) {
@@ -1127,6 +1282,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 }
             }
             break;
+        case BUTTON_DECREASE_NUM_USE_DAYS:
+            if (productSelected) {
+                TCHAR currentNumUseDaysL[50];
+                TCHAR currentNumUseDaysSzFull[256] = _T("");
+                TCHAR currentNumUseDaysSzTemp[10] = _T("");
+                GetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, currentNumUseDaysL, 50);
+                string currentNumUseDaysString = converter.to_bytes(currentNumUseDaysL);
+                int currentNumUseDaysInt = stoi(currentNumUseDaysString);
+                if (currentNumUseDaysInt > 0) {
+                    currentNumUseDaysInt -= 1;
+                    currentNumUseDaysString = to_string(currentNumUseDaysInt);
+                    for (int i = 0; i < currentNumUseDaysString.length(); i++) {
+                        _stprintf(currentNumUseDaysSzTemp, _T("%c"), currentNumUseDaysString[i]);
+                        _tcscat(currentNumUseDaysSzFull, currentNumUseDaysSzTemp);
+                    }
+                    SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, currentNumUseDaysSzFull);
+                    string sellThruDate = calculateSellThruDate(currentDate, currentNumUseDaysString);
+                    for (int i = 0; i < sellThruDate.length(); i++) {
+                        _stprintf(sellThruDateSzTemp, _T("%c"), sellThruDate[i]);
+                        _tcscat(sellThruDateSzFull, sellThruDateSzTemp);
+                    }
+                    SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, sellThruDateSzFull);
+                }
+            }
+            break;
+        case BUTTON_INCREASE_NUM_USE_DAYS:
+            if (productSelected) {
+                TCHAR currentNumUseDaysL[50];
+                TCHAR currentNumUseDaysSzFull[256] = _T("");
+                TCHAR currentNumUseDaysSzTemp[10] = _T("");
+                GetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, currentNumUseDaysL, 50);
+                string currentNumUseDaysString = converter.to_bytes(currentNumUseDaysL);
+                int currentNumUseDaysInt = stoi(currentNumUseDaysString);
+                if (currentNumUseDaysInt < 30) {
+                    currentNumUseDaysInt += 1;
+                    currentNumUseDaysString = to_string(currentNumUseDaysInt);
+                    for (int i = 0; i < currentNumUseDaysString.length(); i++) {
+                        _stprintf(currentNumUseDaysSzTemp, _T("%c"), currentNumUseDaysString[i]);
+                        _tcscat(currentNumUseDaysSzFull, currentNumUseDaysSzTemp);
+                    }
+                    SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, currentNumUseDaysSzFull);
+                    string sellThruDate = calculateSellThruDate(currentDate, currentNumUseDaysString);
+                    for (int i = 0; i < sellThruDate.length(); i++) {
+                        _stprintf(sellThruDateSzTemp, _T("%c"), sellThruDate[i]);
+                        _tcscat(sellThruDateSzFull, sellThruDateSzTemp);
+                    }
+                    SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, sellThruDateSzFull);
+                }
+            }
+            break;
         case BUTTON_ENTER:
             
             toggleSearch = true;
@@ -1146,13 +1351,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     found = true;
                     productSelected = true;
                     currentProduct = products[i];
+                    addCurrentProductToTrackingFile(currentProduct.getCode());
                     string currentProductDescription = currentProduct.getDescription();
+                    string currentProductIngredients = currentProduct.getIngredients();
+                    string currentProductNumUseDays = currentProduct.getNumUseDays();
+                    string currentProductSellThruDate = calculateSellThruDate(currentDate, currentProductNumUseDays);
+                    
                     string currentProductTare = "-0.010";
                     string currentProductWeight = "0.00";
                     string currentProductPrice = currentProduct.getPrice();
                     string currentProductTotalPrice = "0.00";
-
-                    string currentProductDescriptionOutput = currentProductDescription;
+                    string currentProductDescriptionOutput = "";
+                    if (prePackOn) {
+                        currentProductDescriptionOutput = "Autostart " + currentProductDescription;
+                    }
+                    else {
+                        currentProductDescriptionOutput = currentProductDescription;
+                    }
                     string currentProductTareOutput = tareLabelString + currentProductTare;
                     string currentProductWeightOutput = weightLabelString + currentProductWeight;
                     string currentProductPriceOutput = priceLabelString + currentProductPrice;
@@ -1190,13 +1405,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                     }
                     SetDlgItemText(hWnd, TOTAL_PRICE_EDITTEXT, totalPriceSzFull);
 
-                    for (int i = 0; i < currentDate.length(); i++) {
-                        _stprintf(currentDateSzTemp, _T("%c"), currentDate[i]);
-                        _tcscat(currentDateSzFull, currentDateSzTemp);
+                    for (int i = 0; i < currentDateTrimmed.length(); i++) {
+                        _stprintf(currentDateTrimmedSzTemp, _T("%c"), currentDateTrimmed[i]);
+                        _tcscat(currentDateTrimmedSzFull, currentDateTrimmedSzTemp);
                     }
-                    SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, currentDateSzFull);
-                    SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, currentDateSzFull);
+                    SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, currentDateTrimmedSzFull);
 
+                    for (int i = 0; i < currentProductSellThruDate.length(); i++) {
+                        _stprintf(sellThruDateSzTemp, _T("%c"), currentProductSellThruDate[i]);
+                        _tcscat(sellThruDateSzFull, sellThruDateSzTemp);
+                    }
+
+                    SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, sellThruDateSzFull);
+
+                    for (int i = 0; i < currentProductIngredients.length(); i++) {
+                        _stprintf(ingredientsSzTemp, _T("%c"), currentProductIngredients[i]);
+                        _tcscat(ingredientsSzFull, ingredientsSzTemp);
+                    }
+
+                    SetDlgItemText(hWnd, INGREDIENTS_EDITTEXT, ingredientsSzFull);
+
+                    for (int i = 0; i < currentProductNumUseDays.length(); i++) {
+                        _stprintf(numUseDaysSzTemp, _T("%c"), currentProductNumUseDays[i]);
+                        _tcscat(numUseDaysSzFull, numUseDaysSzTemp);
+                    }
+
+                    SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, numUseDaysSzFull);
 
                 }
             }
@@ -1230,6 +1464,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         TextOut(hdc,
             50, 2,
             departmentLabel, _tcslen(departmentLabel));
+
+        TextOut(hdc,
+            25, 255,
+            L"Packed On", _tcslen(L"Packed On"));
+
+        TextOut(hdc,
+            290, 255,
+            L"# Days ->", _tcslen(L"# Days ->"));
+
+        TextOut(hdc,
+            425, 255,
+            L"Sell Thru", _tcslen(L"Sell Thru"));
 
         EndPaint(hWnd, &ps);
         break;
