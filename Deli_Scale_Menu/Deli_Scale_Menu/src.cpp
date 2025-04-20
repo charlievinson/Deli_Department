@@ -1,3 +1,4 @@
+
 // compile with: /D_UNICODE /DUNICODE /DWIN32 /D_WINDOWS /c
 
 #include <iostream>
@@ -6,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <windows.h>
+#include <commctrl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <tchar.h>
@@ -16,6 +18,8 @@
 #define OK_BUTTON 1100
 
 #define PRODUCT_EDITTEXT 50
+
+#define OPEN_PRODUCTS_BUTTON 500
 
 using namespace std;
 
@@ -40,6 +44,8 @@ int WINAPI WinMain(
     _In_ int       nCmdShow
 )
 {
+
+
 
     WNDCLASSEX wcex;
 
@@ -81,6 +87,7 @@ int WINAPI WinMain(
         hInstance,
         NULL
     );
+
 
 
 
@@ -141,34 +148,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
 
     {
-
-        HWND hEdit = CreateWindowEx(
-            WS_EX_CLIENTEDGE,
-            _T("EDIT"),
-            _T(""),
-            WS_CHILD | WS_VISIBLE,
-            200, // x position
-            0, // y position
-            1050, // width
-            20,  // height
-            hWnd,  // parent window
-            (HMENU)PRODUCT_EDITTEXT, // menu
-            GetModuleHandle(NULL),
-            NULL);
-
-        HWND hwndOkButton = CreateWindow(
+        HWND hwndButtonDecreaseNumUseDays = CreateWindow(
             L"BUTTON",  // Predefined class; Unicode assumed 
-            L"OK",      // Button text 
+            L"OPEN PRODUCTS",      // Button text 
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-            20,         // x position 
-            20,         // y position 
-            100,        // Button width
-            50,        // Button height
+            240,         // x position 
+            285,         // y position 
+            150,        // Button width
+            80,        // Button height
             hWnd,     // Parent window
-            (HMENU)OK_BUTTON,       // No menu.
+            (HMENU)OPEN_PRODUCTS_BUTTON,       // No menu.
             (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
             NULL);      // Pointer not needed.
-
     }
     case WM_COMMAND:
     {
@@ -180,6 +171,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DestroyWindow(hWnd);
 
             break;
+        case OPEN_PRODUCTS_BUTTON:
+            system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Open_Products\\x64\\Debug\\Deli_Scale_Open_Products.exe");
+
 
         }
     case WM_PAINT:
