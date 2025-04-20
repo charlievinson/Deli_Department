@@ -1,0 +1,9 @@
+﻿  src.cpp
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(677,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(681,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(685,36): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(690,44): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(694,39): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(492,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\Deli_Scale_Tracking_Edit\src.cpp(713,1): warning C4715: 'WndProc': not all control paths return a value
+  Deli_Scale_Tracking_Edit.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Edit\x64\Debug\Deli_Scale_Tracking_Edit.exe
