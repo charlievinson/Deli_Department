@@ -1,0 +1,5 @@
+﻿  src.cpp
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Selection\Deli_Scale_Tracking_Selection\src.cpp(415,35): warning C4312: 'type cast': conversion from 'int' to 'HMENU' of greater size
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Selection\Deli_Scale_Tracking_Selection\src.cpp(325,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Selection\Deli_Scale_Tracking_Selection\src.cpp(536,1): warning C4715: 'WndProc': not all control paths return a value
+  Deli_Scale_Tracking_Selection.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Selection\x64\Debug\Deli_Scale_Tracking_Selection.exe
