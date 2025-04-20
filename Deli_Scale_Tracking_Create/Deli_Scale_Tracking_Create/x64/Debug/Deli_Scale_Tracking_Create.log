@@ -1,0 +1,13 @@
+﻿  src.cpp
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(707,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(711,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(715,35): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(719,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(723,38): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(727,36): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(733,39): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(737,26): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(478,11): warning C4101: 'newDeliChubCodeEditText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(467,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\Deli_Scale_Tracking_Create\src.cpp(753,1): warning C4715: 'WndProc': not all control paths return a value
+  Deli_Scale_Tracking_Create.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Create\x64\Debug\Deli_Scale_Tracking_Create.exe
