@@ -12,9 +12,13 @@
 #include <string>
 #include <locale>
 #include <codecvt>
+#include <random>
+#include <ctime>
+#include <iomanip>
 
 #define OK_BUTTON 1100
 #define SAVE_BUTTON 1200
+#define CAPTURE_WEIGHT_BUTTON 1210
 #define EDIT_BUTTON 1220
 #define EXIT_BUTTON 1300
 
@@ -25,6 +29,39 @@
 #define USE_BY_EDITTEXT 540
 
 using namespace std;
+
+// get current date in string mm/dd/yyyy format
+std::string getCurrentDate() {
+    std::time_t now = std::time(0);
+    std::tm* ltm = std::localtime(&now);
+
+    // Use std::ostringstream to format the date
+    std::ostringstream ss;
+    ss << std::setfill('0') << std::setw(2) << 1 + ltm->tm_mon << "/";
+    ss << std::setfill('0') << std::setw(2) << ltm->tm_mday << "/";
+    ss << 1900 + ltm->tm_year;
+    return ss.str();
+
+}
+
+string trimDate(string untrimmedDate) {
+    string trimmedDate = "";
+    string untrimmedMonth = untrimmedDate.substr(0, 2);
+    string untrimmedDay = untrimmedDate.substr(3, 2);
+    string untrimmedYear = untrimmedDate.substr(6, 4);
+
+    int monthInt = stoi(untrimmedMonth);
+    int dayInt = stoi(untrimmedDay);
+    int yearInt = stoi(untrimmedYear);
+
+    trimmedDate = to_string(monthInt) + "/" + to_string(dayInt) + "/" + to_string(yearInt);
+    return trimmedDate;
+}
+
+
+
+// Global variables
+string currentDate = trimDate(getCurrentDate());
 
 // setup wstring to string converter
 using convert_type = std::codecvt_utf8<wchar_t>;
@@ -482,13 +519,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     TCHAR newDeliChubBayEditText[50];
     string newDeliChubBay = "";
     TCHAR newDeliChubDateEditText[50];
-    string newDeliChubDate = "";
+    string newDeliChubDate = currentDate;
     Deli_Chub newDeliChub = Deli_Chub("", "", "", "");
 
     string trackingNumber = currentDeliChub.getId();
     string description = (currentProductDescription);
-    string startingWeight = (currentDeliChub.getWeight());
+    string startingWeight = "";
     string useByDate = (currentDeliChub.getDate());
+    string openDate = currentDate;
     string bayNumber(currentDeliChub.getBay());
 
     TCHAR trackingNumberSzFull[256] = _T("");
@@ -502,6 +540,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     TCHAR useByDateSzFull[256] = _T("");
     TCHAR useByDateSzTemp[10] = _T("");
+
+    TCHAR openDateSzFull[256] = _T("");
+    TCHAR openDateSzTemp[10] = _T("");
 
     TCHAR bayNumberSzFull[256] = _T("");
     TCHAR bayNumberSzTemp[10] = _T("");
@@ -521,6 +562,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     TCHAR trackingSelectionLabelSzFull[256] = _T("");
     TCHAR trackingSelectionLabelSzTemp[256] = _T("");
+
+    // Seed the random number generator
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 8.0);
+
+    // Generate a random float between 0 and 1
+    float random_float = dis(gen);
 
 
     for (int i = 0; i < currentProductCode.length(); i++) {
@@ -551,6 +600,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     for (int i = 0; i < useByDate.length(); i++) {
         _stprintf(useByDateSzTemp, _T("%c"), useByDate[i]);
         _tcscat(useByDateSzFull, useByDateSzTemp);
+    }
+
+    for (int i = 0; i < openDate.length(); i++) {
+        _stprintf(openDateSzTemp, _T("%c"), openDate[i]);
+        _tcscat(openDateSzFull, openDateSzTemp);
     }
 
     for (int i = 0; i < bayNumber.length(); i++) {
@@ -590,26 +644,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_CHILD | WS_VISIBLE,
             450, // x position
             260, // y position
-            100, // width
+            140, // width
             40,  // height
             hWnd,  // parent window
             (HMENU)STARTING_WEIGHT_EDITTEXT, // menu
             GetModuleHandle(NULL),
             NULL);
 
+        SendMessage(startingWeightEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
+
+        HWND captureWeightButton = CreateWindowEx(
+            WS_EX_CLIENTEDGE,
+            _T("BUTTON"),
+            _T("CAPTURE WEIGHT"),
+            WS_CHILD | WS_VISIBLE,
+            650, // x position
+            260, // y position
+            150, // width
+            40,  // height
+            hWnd,  // parent window
+            (HMENU)CAPTURE_WEIGHT_BUTTON, // menu
+            GetModuleHandle(NULL),
+            NULL);
+
         HWND openDateEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
             _T("EDIT"),
-            useByDateSzFull,
+            openDateSzFull,
             WS_CHILD | WS_VISIBLE,
             450, // x position
             340, // y position
-            100, // width
+            140, // width
             40,  // height
             hWnd,  // parent window
             (HMENU)OPEN_DATE_EDITTEXT, // menu
             GetModuleHandle(NULL),
             NULL);
+
+        SendMessage(openDateEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
 
         HWND useByDaysEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
@@ -618,12 +692,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_CHILD | WS_VISIBLE,
             450, // x position
             420, // y position
-            100, // width
+            60, // width
             40,  // height
             hWnd,  // parent window
             (HMENU)USE_BY_EDITTEXT, // menu
             GetModuleHandle(NULL),
             NULL);
+
+        SendMessage(useByDaysEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
 
         HWND bayNumberEditText = CreateWindowEx(
             WS_EX_CLIENTEDGE,
@@ -632,12 +709,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_CHILD | WS_VISIBLE,
             450, // x position
             580, // y position
-            100, // width
+            60, // width
             40,  // height
             hWnd,  // parent window
             (HMENU)BAY_EDITTEXT, // menu
             GetModuleHandle(NULL),
             NULL);
+
+        SendMessage(bayNumberEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
 
         HWND saveButton = CreateWindow(
             L"BUTTON",  // Predefined class; Unicode assumed 
@@ -686,6 +766,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             newDeliChub = Deli_Chub(newDeliChubCode, newDeliChubWeight, newDeliChubBay, newDeliChubDate);
             reloadDeliChubDatabaseAndAdd(newDeliChub, deli_chub_database);
             DestroyWindow(hWnd);
+            break;
+        case CAPTURE_WEIGHT_BUTTON:
+            random_float = dis(gen);
+
+            // Round to 2 decimal places
+            random_float = std::round(random_float * 100.0) / 100.0;
+            startingWeight = to_string(random_float).substr(0,4);
+
+            for (int i = 0; i < startingWeight.length(); i++) {
+                _stprintf(startingWeightSzTemp, _T("%c"), startingWeight[i]);
+                _tcscat(startingWeightSzFull, startingWeightSzTemp);
+            }
+            SetDlgItemText(hWnd, STARTING_WEIGHT_EDITTEXT, startingWeightSzFull);
             break;
         case EDIT_BUTTON:
             system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Tracking_Edit\\x64\\Debug\\Deli_Scale_Tracking_Edit.exe");
