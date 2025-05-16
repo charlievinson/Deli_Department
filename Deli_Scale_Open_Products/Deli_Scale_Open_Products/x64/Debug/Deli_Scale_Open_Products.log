@@ -1,4 +1,6 @@
 ﻿  src.cpp
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(304,11): warning C4101: 'editTextText': unreferenced local variable
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(593,1): warning C4715: 'WndProc': not all control paths return a value
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(316,28): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(513,16): warning C4101: 'si': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(470,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\Deli_Scale_Open_Products\src.cpp(812,1): warning C4715: 'WndProc': not all control paths return a value
   Deli_Scale_Open_Products.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Open_Products\x64\Debug\Deli_Scale_Open_Products.exe

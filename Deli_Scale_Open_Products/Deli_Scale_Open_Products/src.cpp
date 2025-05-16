@@ -18,7 +18,6 @@
 
 
 
-
 #define OK_BUTTON 1100
 #define OPEN_PRODUCTS_BUTTON 1200
 #define INVENTORY_BUTTON 1210
@@ -29,6 +28,8 @@
 #define REPORT_BUTTON 1600
 
 #define PRODUCT_EDITTEXT 500
+
+#define DELI_CHUB 100
 
 #define WINDOW 1
 
@@ -49,6 +50,119 @@ int deliChubListY = 20;
 // setup wstring to string converter
 using convert_type = std::codecvt_utf8<wchar_t>;
 std::wstring_convert<convert_type, wchar_t> converter;
+
+// Product class to store objects representing products and their respective codes and prices
+class Product {
+public:
+    string code = "";
+    string description = "";
+    string price = "";
+    string salePrice = "";
+    string perPound = "";
+    string ingredients = "";
+    string numUseDays = "";
+
+public:
+    // constructor
+    Product(string c, string d, string p, string pp, string ii) {
+        this->code = c;
+        this->description = d;
+        this->price = p;
+        this->perPound = pp;
+        this->ingredients = ii;
+    }
+
+    // getter and setter methods
+    string getCode() {
+        return this->code;
+    }
+
+    string getDescription() {
+        return this->description;
+    }
+
+    string getPrice() {
+        return this->price;
+    }
+
+    string getSalePrice() {
+        return this->salePrice;
+    }
+
+    string getPerPound() {
+        return this->perPound;
+    }
+
+    string getIngredients() {
+        return this->ingredients;
+    }
+
+    string getNumUseDays() {
+        return this->numUseDays;
+    }
+
+    void setNumUseDays(string newNumUseDays) {
+        this->numUseDays = newNumUseDays;
+        return;
+    }
+};
+
+// load product database function reads product database file and returns vector of Product objects representing each line in file
+vector<Product> loadProductDatabase() {
+    vector<string> documentsFromDatabase;
+    vector<Product> productsFromDocuments;
+
+    std::ifstream product_database_file("C:/Users/Charlie/OneDrive/Desktop/c++/Deli_Scale/Deli_Scale_Main/Deli_Scale_Main/product_database_file.txt");
+
+    if (product_database_file.is_open())
+    {
+        string document = "";
+        while (getline(product_database_file, document))
+        {
+            documentsFromDatabase.push_back(document);
+        }
+        product_database_file.close();
+    }
+
+    for (int i = 0; i < documentsFromDatabase.size(); i++) {
+        string currentDocument = documentsFromDatabase[i];
+        string currentDocumentCode = "";
+        string currentDocumentDescription = "";
+        string currentDocumentPrice = "";
+        string currentDocumentPerPound = "";
+        string currentDocumentIngredients = "";
+        string currentDocumentNumUseDays = "";
+        vector<int> delimiterIndices;
+        int finalDelimiterIndex;
+
+        for (int i = 0; i < currentDocument.size(); i++) {
+            if (currentDocument[i] == ',') {
+                delimiterIndices.push_back(i);
+            }
+            else if (currentDocument[i] == '|') {
+                finalDelimiterIndex = i;
+                break;
+            }
+        }
+
+        currentDocumentCode = currentDocument.substr(0, delimiterIndices[0]);
+        currentDocumentDescription = currentDocument.substr(delimiterIndices[0] + 1, delimiterIndices[1] - delimiterIndices[0] - 1);
+        currentDocumentPrice = currentDocument.substr(delimiterIndices[1] + 1, delimiterIndices[2] - delimiterIndices[1] - 1);
+        currentDocumentPerPound = currentDocument.substr(delimiterIndices[2] + 1, 1);
+        currentDocumentNumUseDays = currentDocument.substr(delimiterIndices[3] + 1, 2);
+
+        currentDocumentIngredients = currentDocument.substr(finalDelimiterIndex + 1, currentDocument.size() - finalDelimiterIndex);
+
+        Product singleProductFromDocument = Product(currentDocumentCode, currentDocumentDescription, currentDocumentPrice, currentDocumentPerPound, currentDocumentIngredients);
+        int numUseDaysInt = stoi(currentDocumentNumUseDays);
+        currentDocumentNumUseDays = to_string(numUseDaysInt);
+        singleProductFromDocument.setNumUseDays(currentDocumentNumUseDays);
+        productsFromDocuments.push_back(singleProductFromDocument);
+    }
+
+    return productsFromDocuments;
+
+}
 
 // Deli Chub class to store objects representing currently opened meats and cheeses
 class Deli_Chub {
@@ -175,6 +289,15 @@ void reloadDeliChubDatabaseAndRemove(Deli_Chub deliChub, vector<Deli_Chub> deliC
     }
 }
 
+string getDescriptionFromProductCode(string productCode, vector<Product> product_database) {
+    for (int i = 0; i < product_database.size(); i++) {
+        if (product_database[i].getCode() == productCode) {
+            return product_database[i].getDescription();
+        }
+    }
+    return "error";
+}
+
 vector<Deli_Chub> addMatchingDeliChubsToVector(vector<Deli_Chub> database, string productCode) {
     vector<Deli_Chub> matches;
     for (int i = 0; i < database.size(); i++) {
@@ -185,8 +308,51 @@ vector<Deli_Chub> addMatchingDeliChubsToVector(vector<Deli_Chub> database, strin
     return matches;
 }
 
+map<string, int> duplicateProducts;
+
+
 // deli chub database
 vector<Deli_Chub> deli_chub_database = loadDeliChubDatabase();
+int numDeliChubsInDatabase = deli_chub_database.size();
+int numDeliChubsInColumn1;
+int numDeliChubsInColumn2;
+int numDeliChubsInColumn3;
+
+void runProductReport() {
+    for (int i = 0; i < deli_chub_database.size(); i++) {
+        string currentProductCode = deli_chub_database[i].getCode();
+        int count = 0;
+        for (int j = 0; j < deli_chub_database.size(); j++) {
+            if (deli_chub_database[j].getCode() == currentProductCode) {
+                count++;
+            }
+        }
+        if (count > 1) {
+            duplicateProducts.insert({ currentProductCode, count });
+        }
+    }
+}
+
+void assignColumnCounts() {
+    int numDeliChubsInEachColumn = numDeliChubsInDatabase / 3;
+    
+    if ((numDeliChubsInDatabase % 3) == 1) {
+         numDeliChubsInColumn1 = numDeliChubsInEachColumn + 1;
+         numDeliChubsInColumn2 = numDeliChubsInEachColumn;
+         numDeliChubsInColumn3 = numDeliChubsInEachColumn;
+    }
+    else if ((numDeliChubsInDatabase % 3) == 2) {
+         numDeliChubsInColumn1 = numDeliChubsInEachColumn + 1;
+         numDeliChubsInColumn2 = numDeliChubsInEachColumn + 1;
+         numDeliChubsInColumn3 = numDeliChubsInEachColumn;
+    }
+    else {
+         numDeliChubsInColumn1 = numDeliChubsInEachColumn;
+         numDeliChubsInColumn2 = numDeliChubsInEachColumn;
+         numDeliChubsInColumn3 = numDeliChubsInEachColumn;
+    }
+    return;
+}
 
 
 vector<int> deliChubMenu;
@@ -304,6 +470,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     TCHAR editTextText[50];
     std::wstring currentDigit;
 
+    vector<Product> product_database = loadProductDatabase();
+
+    assignColumnCounts();
 
     int deliChubButtonXPos = -200;
     int deliChubButtonYPos = 175;
@@ -317,6 +486,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     TCHAR tempSzFull[256] = _T("");
     TCHAR tempSzTemp[10] = _T("");
+
+
+    string totalNumberOfDeliChubsInDatabase = "";
+    string totalLabel = "";
+    TCHAR totalLabelSzFull[256] = _T("");
+    TCHAR totalLabelSzTemp[10] = _T("");
 
 
     string trackingSelectionLabel = "Open Products";
@@ -357,7 +532,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_MULTILINE,  // Styles 
             50,         // x position 
             25,         // y position 
-            275,        // Button width
+            375,        // Button width
             40,        // Button height
             hWnd,     // Parent window
             (HMENU)SORT_PUC_BUTTON,       // No menu.
@@ -370,9 +545,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             L"BUTTON",  // Predefined class; Unicode assumed 
             L"SORT BY EXP. DATE",      // Button text 
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_MULTILINE,  // Styles 
-            50,         // x position 
-            80,         // y position 
-            275,        // Button width
+            450,         // x position 
+            25,         // y position 
+            375,        // Button width
             40,        // Button height
             hWnd,     // Parent window
             (HMENU)SORT_PUC_BUTTON,       // No menu.
@@ -385,9 +560,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             L"BUTTON",  // Predefined class; Unicode assumed 
             L"RUN PRODUCT REPORT",      // Button text 
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_MULTILINE,  // Styles 
-            350,         // x position 
+            850,         // x position 
             25,         // y position 
-            275,        // Button width
+            375,        // Button width
             40,        // Button height
             hWnd,     // Parent window
             (HMENU)REPORT_BUTTON,       // No menu.
@@ -401,7 +576,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             L"BUTTON",  // Predefined class; Unicode assumed 
             L"X",      // Button text 
             WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON | BS_MULTILINE,  // Styles 
-            650,         // x position 
+            1250,         // x position 
             25,         // y position 
             40,        // Button width
             40,        // Button height
@@ -412,32 +587,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         SendMessage(exitButton, WM_SETFONT, WPARAM(CreateFont(20, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
 
-        /*
-        int deliChubListY = 140;
-        for (int i = 0; i < 60; i++) {
-            HWND dcEditText = CreateWindow(
-                L"EDIT",  // Predefined class; Unicode assumed 
-                L"deli chub edit text",      // Button text 
-                WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
-                50,         // x position 
-                deliChubListY,         // y position 
-                275,        // Button width
-                40,        // Button height
-                hWnd,     // Parent window
-                (HMENU)PRODUCT_EDITTEXT,       // No menu.
-                (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-                NULL);      // Pointer not needed.
-            deliChubListY += 22;
-        }
-        */
         
 
-        deliChubListY = 140;
-        for (int i = 0; i < deli_chub_database.size(); i++) {
+        deliChubListY = 100;
+        for (int i = 0; i < numDeliChubsInColumn1; i++) {
+            string deliChubId = deli_chub_database[i].getId();
             string deliChubCode = deli_chub_database[i].getCode();
-            string deliChubDescription = "description";
+            string deliChubDescription = getDescriptionFromProductCode(deliChubCode, product_database);
+            if (deliChubDescription.size() > 32) {
+                deliChubDescription = deliChubDescription.substr(0, 32);
+            }
             string deliChubDate = deli_chub_database[i].getDate();
-            string fullLabel = deliChubCode + ": " + deliChubDescription + " | " + deliChubDate;
+            string fullLabel = deliChubId + ": " + deliChubDescription + " | " + deliChubDate;
             
             TCHAR labelSzFull[256] = _T("");
             TCHAR labelSzTemp[10] = _T("");
@@ -453,14 +614,91 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
                 50,         // x position 
                 deliChubListY,         // y position 
-                275,        // Button width
-                40,        // Button height
+                375,        // Button width
+                25,        // Button height
                 hWnd,     // Parent window
-                (HMENU)PRODUCT_EDITTEXT,       // No menu.
+                (HMENU)DELI_CHUB,       // No menu.
                 (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
                 NULL);      // Pointer not needed.
             deliChubListY += 22;
+            SendMessage(dcEditText, WM_SETFONT, WPARAM(CreateFont(15, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
         }
+
+        deliChubListY = 100;
+        for (int i = numDeliChubsInColumn1; i < numDeliChubsInColumn1 + numDeliChubsInColumn2; i++) {
+            string deliChubId = deli_chub_database[i].getId();
+            string deliChubCode = deli_chub_database[i].getCode();
+            string deliChubDescription = getDescriptionFromProductCode(deliChubCode, product_database);
+
+            if (deliChubDescription.size() > 32) {
+                deliChubDescription = deliChubDescription.substr(0, 32);
+            }
+            string deliChubDate = deli_chub_database[i].getDate();
+            string fullLabel = deliChubId + ": " + deliChubDescription + " | " + deliChubDate;
+
+            TCHAR labelSzFull[256] = _T("");
+            TCHAR labelSzTemp[10] = _T("");
+
+            for (int i = 0; i < fullLabel.length(); i++) {
+                _stprintf(labelSzTemp, _T("%c"), fullLabel[i]);
+                _tcscat(labelSzFull, labelSzTemp);
+            }
+
+            HWND dcEditText = CreateWindow(
+                L"EDIT",  // Predefined class; Unicode assumed 
+                labelSzFull,      // Button text 
+                WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
+                450,         // x position 
+                deliChubListY,         // y position 
+                375,        // Button width
+                25,        // Button height
+                hWnd,     // Parent window
+                (HMENU)DELI_CHUB,       // No menu.
+                (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+                NULL);      // Pointer not needed.
+            deliChubListY += 22;
+            SendMessage(dcEditText, WM_SETFONT, WPARAM(CreateFont(15, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
+        }
+
+        deliChubListY = 100;
+        for (int i = numDeliChubsInColumn1 + numDeliChubsInColumn2; i < numDeliChubsInColumn1 + numDeliChubsInColumn2 + numDeliChubsInColumn3; i++) {
+            string deliChubId = deli_chub_database[i].getId();
+            string deliChubCode = deli_chub_database[i].getCode();
+            string deliChubDescription = getDescriptionFromProductCode(deliChubCode, product_database);
+
+            if (deliChubDescription.size() > 32) {
+                deliChubDescription = deliChubDescription.substr(0, 32);
+            }
+            string deliChubDate = deli_chub_database[i].getDate();
+            string fullLabel = deliChubId + ": " + deliChubDescription + " | " + deliChubDate;
+
+            TCHAR labelSzFull[256] = _T("");
+            TCHAR labelSzTemp[10] = _T("");
+
+            for (int i = 0; i < fullLabel.length(); i++) {
+                _stprintf(labelSzTemp, _T("%c"), fullLabel[i]);
+                _tcscat(labelSzFull, labelSzTemp);
+            }
+
+            HWND dcEditText = CreateWindow(
+                L"EDIT",  // Predefined class; Unicode assumed 
+                labelSzFull,      // Button text 
+                WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
+                850,         // x position 
+                deliChubListY,         // y position 
+                375,        // Button width
+                25,        // Button height
+                hWnd,     // Parent window
+                (HMENU)DELI_CHUB,       // No menu.
+                (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+                NULL);      // Pointer not needed.
+            deliChubListY += 22;
+            SendMessage(dcEditText, WM_SETFONT, WPARAM(CreateFont(15, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+
+        }
+
 
         
 
@@ -488,97 +726,78 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case EXIT_BUTTON:
             DestroyWindow(hWnd);
             break;
+        case REPORT_BUTTON:
+            runProductReport();
+            int initialY = 700;
+            HWND dcEditText = CreateWindow(
+                L"EDIT",  // Predefined class; Unicode assumed 
+                L"duplicate products:",      // Button text 
+                WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
+                50,         // x position 
+                initialY,         // y position 
+                375,        // Button width
+                25,        // Button height
+                hWnd,     // Parent window
+                (HMENU)155,       // No menu.
+                (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+                NULL);      // Pointer not needed.
+            for (const auto& pair : duplicateProducts) {
+                initialY += 25;
+
+                string fullDuplicateProductLabel = pair.first + ": " + to_string(pair.second);
+
+                TCHAR duplicateProductLabelSzFull[256] = _T("");
+                TCHAR duplicateProductLabelSzTemp[10] = _T("");
+
+                for (int i = 0; i < fullDuplicateProductLabel.length(); i++) {
+                    _stprintf(duplicateProductLabelSzTemp, _T("%c"), fullDuplicateProductLabel[i]);
+                    _tcscat(duplicateProductLabelSzFull, duplicateProductLabelSzTemp);
+                }
+
+
+                HWND dcEditText = CreateWindow(
+                    L"EDIT",  // Predefined class; Unicode assumed 
+                    duplicateProductLabelSzFull,      // Button text 
+                    WS_TABSTOP | WS_VISIBLE | WS_CHILD | ES_MULTILINE | ES_READONLY,  // Styles 
+                    50,         // x position 
+                    initialY,         // y position 
+                    375,        // Button width
+                    25,        // Button height
+                    hWnd,     // Parent window
+                    (HMENU)155,       // No menu.
+                    (HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+                    NULL);      // Pointer not needed.
+
+            }
+
+            break;
         }
     case WM_PAINT:
         hdc = BeginPaint(hWnd, &ps);
-
-
+        HFONT hFontOriginal, hFont1;
+        hFont1 = CreateFont(22, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_OUTLINE_PRECIS,
+            CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, VARIABLE_PITCH, TEXT("Helvetica"));
+        hFontOriginal = (HFONT)SelectObject(hdc, hFont1);
+        if (deli_chub_database.size() < 75) {
+            SetBkColor(hdc, RGB(0, 255, 0));
+        }
+        else if (deli_chub_database.size() < 90) {
+            SetBkColor(hdc, RGB(255, 255, 0));
+        }
+        else {
+            SetBkColor(hdc, RGB(255, 0, 0));
+        }
+        totalNumberOfDeliChubsInDatabase = to_string(deli_chub_database.size());
+        totalLabel = "Total: " + totalNumberOfDeliChubsInDatabase;
+        for (int i = 0; i < totalLabel.length(); i++) {
+            _stprintf(totalLabelSzTemp, _T("%c"), totalLabel[i]);
+            _tcscat(totalLabelSzFull, totalLabelSzTemp);
+        }
+        TextOut(hdc, 52, 72, totalLabelSzFull, 10);
 
         EndPaint(hWnd, &ps);
         break;
-    case WM_SIZE:
-    {
-        // Retrieve the dimensions of the client area. 
-        //yClient = HIWORD(lParam);
-        yClient = 100;
-
-        xClient = LOWORD(lParam);
-
-        // Get y-coordinate (bottom) of the second edit control 
-        RECT editCtl2Rect = { 0 };
-        GetWindowRect(hWnd, &editCtl2Rect);
-        POINT point = { 0 };
-        point.x = editCtl2Rect.right;
-        point.y = editCtl2Rect.bottom;
-
-        // Convert screen coordinate to parent client-area coordinates
-        ScreenToClient(hWnd, &point);
-
-        // Set the vertical scrolling range and page size
-        si.cbSize = sizeof(si);
-        si.fMask = SIF_RANGE | SIF_PAGE;
-        si.nMin = 0;
-        si.nMax = point.y / yChar;
-        si.nPage = yClient / yChar;
-        SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
-        break;
-    }
-
-    case WM_VSCROLL:
-    {
-        // Get all the vertial scroll bar information.
-        si.cbSize = sizeof(si);
-        si.fMask = SIF_ALL;
-        GetScrollInfo(hWnd, SB_VERT, &si);
-
-        // Save the position for comparison later on.
-        yPos = si.nPos;
-        switch (LOWORD(wParam))
-        {
-            // User clicked the top arrow.
-        case SB_LINEUP:
-            si.nPos -= 5;
-            break;
-
-            // User clicked the bottom arrow.
-        case SB_LINEDOWN:
-            si.nPos += 5;
-            break;
-
-            // User clicked the scroll bar shaft above the scroll box.
-        case SB_PAGEUP:
-            si.nPos -= si.nPage;
-            break;
-
-            // User clicked the scroll bar shaft below the scroll box.
-        case SB_PAGEDOWN:
-            si.nPos += si.nPage;
-            break;
-
-            // User dragged the scroll box.
-        case SB_THUMBTRACK:
-            si.nPos = si.nTrackPos;
-            break;
-
-        default:
-            break;
-        }
-
-        // Set the position and then retrieve it.  Due to adjustments
-        // by Windows it may not be the same as the value set.
-        si.fMask = SIF_POS;
-        SetScrollInfo(hWnd, SB_VERT, &si, TRUE);
-        GetScrollInfo(hWnd, SB_VERT, &si);
-
-        // If the position has changed, scroll window and update it.
-        if (si.nPos != yPos)
-        {
-            ScrollWindow(hWnd, 0, yChar * (yPos - si.nPos), NULL, NULL);
-            UpdateWindow(hWnd);
-        }
-
-        return 0;
-    }
+    
     case WM_DESTROY:
         PostQuitMessage(0);
         break;
