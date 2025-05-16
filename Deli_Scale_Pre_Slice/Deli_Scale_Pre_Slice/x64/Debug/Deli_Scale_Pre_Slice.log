@@ -1,0 +1,6 @@
+﻿  src.cpp
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Pre_Slice\Deli_Scale_Pre_Slice\src.cpp(1165,31): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Pre_Slice\Deli_Scale_Pre_Slice\src.cpp(1169,31): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Pre_Slice\Deli_Scale_Pre_Slice\src.cpp(204,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Pre_Slice\Deli_Scale_Pre_Slice\src.cpp(1186,1): warning C4715: 'WndProc': not all control paths return a value
+  Deli_Scale_Pre_Slice.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Pre_Slice\x64\Debug\Deli_Scale_Pre_Slice.exe
