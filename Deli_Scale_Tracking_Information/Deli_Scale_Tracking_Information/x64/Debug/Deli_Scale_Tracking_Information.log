@@ -1,14 +1,14 @@
 ﻿  src.cpp
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(640,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(644,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(648,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(652,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(656,36): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(661,44): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(665,39): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(669,42): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(673,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(677,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(463,11): warning C4101: 'editTextText': unreferenced local variable
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(692,1): warning C4715: 'WndProc': not all control paths return a value
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(638,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(642,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(646,41): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(650,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(654,36): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(659,44): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(663,39): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(667,42): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(671,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(675,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(461,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\Deli_Scale_Tracking_Information\src.cpp(690,1): warning C4715: 'WndProc': not all control paths return a value
   Deli_Scale_Tracking_Information.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Tracking_Information\x64\Debug\Deli_Scale_Tracking_Information.exe

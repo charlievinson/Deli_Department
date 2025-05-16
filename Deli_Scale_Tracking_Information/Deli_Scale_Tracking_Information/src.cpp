@@ -291,8 +291,6 @@ string getProductDescription(string productCode) {
 }
 
 string getCurrentDeliChubIdFromTrackingFile() {
-    //vector<string> documentsFromDatabase;
-    //vector<Product> productsFromDocuments;
 
     string currentDeliChubId = "";
 
