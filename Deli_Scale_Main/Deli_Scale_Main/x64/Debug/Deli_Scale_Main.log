@@ -1,8 +1,8 @@
 ﻿  src.cpp
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1466,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1470,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1474,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1478,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(454,11): warning C4101: 'editTextText': unreferenced local variable
-C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(455,11): warning C4101: 'currentNumUseDaysL': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1700,37): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1704,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1708,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(1712,34): warning C4267: 'argument': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(538,11): warning C4101: 'editTextText': unreferenced local variable
+C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\Deli_Scale_Main\src.cpp(539,11): warning C4101: 'currentNumUseDaysL': unreferenced local variable
   Deli_Scale_Main.vcxproj -> C:\Users\Charlie\OneDrive\Desktop\c++\Deli_Scale\Deli_Scale_Main\x64\Debug\Deli_Scale_Main.exe

@@ -17,6 +17,8 @@ processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 #include <string>
 #include <locale>
 #include <codecvt>
+#include <ctime>
+#include <iomanip>
 
 
 #define BUTTON0 1000
@@ -63,8 +65,28 @@ using namespace std;
 using convert_type = std::codecvt_utf8<wchar_t>;
 std::wstring_convert<convert_type, wchar_t> converter;
 
+// get current date in string mm/dd/yyyy format
+std::string getCurrentDate() {
+    std::time_t now = std::time(0);
+    std::tm* ltm = std::localtime(&now);
+
+    // Use std::ostringstream to format the date
+    std::ostringstream ss;
+    ss << std::setfill('0') << std::setw(2) << 1 + ltm->tm_mon << "/";
+    ss << std::setfill('0') << std::setw(2) << ltm->tm_mday << "/";
+    ss << 1900 + ltm->tm_year;
+    return ss.str();
+}
+
 
 // Global variables
+string currentStore = "ALBERTSON'S";
+string currentTare = "0.015";
+string currentDate = getCurrentDate();
+string currentWeight = "";
+string currentTotalPrice = "";
+string currentProductCode = "";
+
 std::wstring fullNumber;
 string fullNumberString = "";
 string tareLabelString = "";
@@ -75,13 +97,7 @@ double totalPrice;
 bool productSelected = false;
 bool toggleSearch = false;
 bool prePackOn = false;
-
-string currentStore = "ALBERTSON'S";
-string currentTare = "0.015";
-string currentDate = "04/17/2025";
-string currentWeight = "";
-string currentTotalPrice = "";
-//string currentNumUseDays = "";
+bool inPreSliceMode = false;
 
 
 // Product class to store objects representing products and their respective codes and prices
@@ -255,8 +271,76 @@ void addCurrentProductToTrackingFile(string currentProductCode) {
     }
 }
 
+void resetPreSliceModeFlag() {
+    string preSliceModeFlag = "false";
+    std::ofstream pre_slice_mode_flag_file("pre_slice_mode_flag.txt");
+
+    if (pre_slice_mode_flag_file.is_open()) {
+        pre_slice_mode_flag_file << preSliceModeFlag << endl;
+        pre_slice_mode_flag_file.close();
+    }
+}
+
+void raisePreSliceModeFlag() {
+    string preSliceModeFlag = "true";
+    std::ofstream pre_slice_mode_flag_file("pre_slice_mode_flag.txt");
+
+    if (pre_slice_mode_flag_file.is_open()) {
+        pre_slice_mode_flag_file << preSliceModeFlag << endl;
+        pre_slice_mode_flag_file.close();
+    }
+}
+
+void checkPreSliceModeFlag() {
+
+
+    string preSliceModeFlag = "";
+
+    std::ifstream pre_slice_mode_flag_file("pre_slice_mode_flag.txt");
+
+    if (pre_slice_mode_flag_file.is_open())
+    {
+        string document = "";
+        while (getline(pre_slice_mode_flag_file, document))
+        {
+            preSliceModeFlag = document;
+        }
+        pre_slice_mode_flag_file.close();
+    }
+
+    if (preSliceModeFlag == "true") {
+        inPreSliceMode = true;
+    }
+    else {
+        inPreSliceMode = false;
+    }
+
+}
+
 // load product database into vector of Product objects
 vector<Product> products = loadProductDatabase();
+
+string getCurrentProductFromTrackingFile() {
+    //vector<string> documentsFromDatabase;
+    //vector<Product> productsFromDocuments;
+
+    string currentProductCode = "";
+
+    std::ifstream current_product_tracking("C:/Users/Charlie/OneDrive/Desktop/c++/Deli_Scale/Deli_Scale_Main/Deli_Scale_Main/current_product_tracking.txt");
+
+    if (current_product_tracking.is_open())
+    {
+        string document = "";
+        while (getline(current_product_tracking, document))
+        {
+            currentProductCode = document;
+        }
+        current_product_tracking.close();
+    }
+
+    return currentProductCode;
+
+}
 
 // function converts a double to a string with a decimal in the appropriate place to indicate a dollar amount
 string convertTotalPriceDoubleToString(double totalPriceDouble) {
@@ -506,7 +590,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetModuleHandle(NULL),
             NULL);
 
-        SendMessage(productEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+        SendMessage(productEditText, WM_SETFONT, WPARAM(CreateFont(34, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
 
 
         HWND tareEditText = CreateWindowEx(
@@ -581,7 +665,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             WS_EX_CLIENTEDGE,
             _T("EDIT"),
             _T(""),
-            WS_CHILD | WS_VISIBLE,
+            WS_CHILD | WS_VISIBLE | ES_RIGHT,
             210, // x position
             172, // y position
             1132, // width
@@ -591,7 +675,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             GetModuleHandle(NULL),
             NULL);
 
-        SendMessage(codeInputEditText, WM_SETFONT, WPARAM(CreateFont(30, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
+        SendMessage(codeInputEditText, WM_SETFONT, WPARAM(CreateFont(38, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, L"Arial")), TRUE);
 
 
         HWND randomWeightButton = CreateWindow(
@@ -985,7 +1069,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (productSelected) {
                 totalPriceLabelString = converter.to_bytes(totalPriceLabel);
                 float currentProductWeightFloat = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / 5.0));
-                string currentProductWeight = to_string(currentProductWeightFloat);
+                string currentProductWeight = "";
+                if (currentProductWeightFloat < 10) {
+                    currentProductWeight = (to_string(currentProductWeightFloat)).substr(0, 5);
+                }
+                else {
+                    currentProductWeight = (to_string(currentProductWeightFloat)).substr(0, 6);
+                }
                 currentWeight = currentProductWeight;
                 string currentProductPrice = currentProduct.getPrice();
                 string currentProductTotalPrice = "0.00";
@@ -1032,7 +1122,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 GetDlgItemText(hWnd, WEIGHT_EDITTEXT, currentWeightInput, 50);
                 string currentWeightInputString = converter.to_bytes(currentWeightInput);
                 currentWeight = currentWeightInputString;
-                string currentProductWeight = currentWeightInputString.substr(4, 4);
+                string currentProductWeight = currentWeightInputString.substr(4, 5);
                 string currentProductPrice = currentProduct.getPrice();
                 string currentProductTotalPrice = "0.00";
 
@@ -1105,10 +1195,155 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetDlgItemText(hWnd, CODE_INPUT_EDITTEXT, fullNumberSzFull);
             break;
         case BUTTON_MENU:
+            
             fullNumber.erase(0);
             SetDlgItemText(hWnd, CODE_INPUT_EDITTEXT, L"");
             SetDlgItemText(hWnd, PRODUCT_EDITTEXT, L"");
+            SetDlgItemText(hWnd, TARE_EDITTEXT, tareLabel);
+            SetDlgItemText(hWnd, WEIGHT_EDITTEXT, weightLabel);
+            SetDlgItemText(hWnd, PRICE_EDITTEXT, priceLabel);
+            SetDlgItemText(hWnd, TOTAL_PRICE_EDITTEXT, totalPriceLabel);
+            SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, L"");
+            SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, L"");
+            SetDlgItemText(hWnd, INGREDIENTS_EDITTEXT, L"");
+            SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, L"");
+            productSelected = false;
+            prePackOn = false;
+            toggleSearch = false;
+            SetDlgItemText(hWnd, BUTTON_SEARCH, L"SEARCH");
+            
             system("C:\\Users\\Charlie\\OneDrive\\Desktop\\c++\\Deli_Scale\\Deli_Scale_Menu\\x64\\Debug\\Deli_Scale_Menu.exe");
+
+            checkPreSliceModeFlag();
+
+
+            // DEVELOPMENT
+            //addCurrentProductToTrackingFile("10001");
+            //inPreSliceMode = true;
+            // DEVELOPMENT
+
+
+
+
+            if (inPreSliceMode) {
+                SetDlgItemText(hWnd, BUTTON_SEARCH, L"PRINT");
+                productSelected = true;
+                prePackOn = true;
+                toggleSearch = true;
+                currentProductCode = getCurrentProductFromTrackingFile();
+
+                bool found = false;
+                for (int i = 0; i < products.size(); i++) {
+                    if (currentProductCode == products[i].getCode()) {
+                        found = true;
+                        productSelected = true;
+                        currentProduct = products[i];
+                        addCurrentProductToTrackingFile(currentProduct.getCode());
+                        string currentProductDescription = currentProduct.getDescription();
+                        string currentProductIngredients = currentProduct.getIngredients();
+                        string currentProductNumUseDays = currentProduct.getNumUseDays();
+                        string currentProductSellThruDate = calculateSellThruDate(currentDate, currentProductNumUseDays);
+
+                        string currentProductTare = "-0.010";
+                        string currentProductWeight = "0.00";
+                        string currentProductPrice = currentProduct.getPrice();
+                        string currentProductTotalPrice = "0.00";
+                        string currentProductDescriptionOutput = "";
+                        if (prePackOn) {
+                            currentProductDescriptionOutput = "Autostart " + currentProductDescription;
+                        }
+                        else {
+                            currentProductDescriptionOutput = currentProductDescription;
+                        }
+                        string currentProductTareOutput = tareLabelString + currentProductTare;
+                        string currentProductWeightOutput = weightLabelString + currentProductWeight;
+                        string currentProductPriceOutput = priceLabelString + currentProductPrice;
+                        string currentProductTotalPriceOutput = totalPriceLabelString + currentProductTotalPrice;
+
+                        for (int i = 0; i < currentProductDescriptionOutput.length(); i++) {
+                            _stprintf(codeSzTemp, _T("%c"), currentProductDescriptionOutput[i]);
+                            _tcscat(codeSzFull, codeSzTemp);
+                        }
+
+                        SetDlgItemText(hWnd, PRODUCT_EDITTEXT, codeSzFull);
+
+                        for (int i = 0; i < currentProductTareOutput.length(); i++) {
+                            _stprintf(tareSzTemp, _T("%c"), currentProductTareOutput[i]);
+                            _tcscat(tareSzFull, tareSzTemp);
+                        }
+                        SetDlgItemText(hWnd, TARE_EDITTEXT, tareSzFull);
+
+                        for (int i = 0; i < currentProductWeightOutput.length(); i++) {
+                            _stprintf(weightSzTemp, _T("%c"), currentProductWeightOutput[i]);
+                            _tcscat(weightSzFull, weightSzTemp);
+                        }
+                        SetDlgItemText(hWnd, WEIGHT_EDITTEXT, weightSzFull);
+
+                        for (int i = 0; i < currentProductPriceOutput.length(); i++) {
+                            _stprintf(priceSzTemp, _T("%c"), currentProductPriceOutput[i]);
+                            _tcscat(priceSzFull, priceSzTemp);
+                        }
+                        SetDlgItemText(hWnd, PRICE_EDITTEXT, priceSzFull);
+
+
+                        for (int i = 0; i < currentProductTotalPriceOutput.length(); i++) {
+                            _stprintf(totalPriceSzTemp, _T("%c"), currentProductTotalPriceOutput[i]);
+                            _tcscat(totalPriceSzFull, totalPriceSzTemp);
+                        }
+                        SetDlgItemText(hWnd, TOTAL_PRICE_EDITTEXT, totalPriceSzFull);
+
+                        for (int i = 0; i < currentDateTrimmed.length(); i++) {
+                            _stprintf(currentDateTrimmedSzTemp, _T("%c"), currentDateTrimmed[i]);
+                            _tcscat(currentDateTrimmedSzFull, currentDateTrimmedSzTemp);
+                        }
+                        SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, currentDateTrimmedSzFull);
+
+                        for (int i = 0; i < currentProductSellThruDate.length(); i++) {
+                            _stprintf(sellThruDateSzTemp, _T("%c"), currentProductSellThruDate[i]);
+                            _tcscat(sellThruDateSzFull, sellThruDateSzTemp);
+                        }
+
+                        SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, sellThruDateSzFull);
+
+                        for (int i = 0; i < currentProductIngredients.length(); i++) {
+                            _stprintf(ingredientsSzTemp, _T("%c"), currentProductIngredients[i]);
+                            _tcscat(ingredientsSzFull, ingredientsSzTemp);
+                        }
+
+                        SetDlgItemText(hWnd, INGREDIENTS_EDITTEXT, ingredientsSzFull);
+
+                        for (int i = 0; i < currentProductNumUseDays.length(); i++) {
+                            _stprintf(numUseDaysSzTemp, _T("%c"), currentProductNumUseDays[i]);
+                            _tcscat(numUseDaysSzFull, numUseDaysSzTemp);
+                        }
+
+                        SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, numUseDaysSzFull);
+
+                    }
+                }
+
+                if (!(found)) {
+                    SetDlgItemText(hWnd, PRODUCT_EDITTEXT, L"product not found");
+                    fullNumber.erase(0);
+                    SetDlgItemText(hWnd, CODE_INPUT_EDITTEXT, L"");
+                    SetDlgItemText(hWnd, TARE_EDITTEXT, tareLabel);
+                    SetDlgItemText(hWnd, WEIGHT_EDITTEXT, weightLabel);
+                    SetDlgItemText(hWnd, PRICE_EDITTEXT, priceLabel);
+                    SetDlgItemText(hWnd, TOTAL_PRICE_EDITTEXT, totalPriceLabel);
+                    SetDlgItemText(hWnd, PACKED_ON_DATE_EDITTEXT, L"");
+                    SetDlgItemText(hWnd, SELL_THRU_DATE_EDITTEXT, L"");
+                    productSelected = false;
+
+                    toggleSearch = false;
+                    SetDlgItemText(hWnd, BUTTON_SEARCH, L"SEARCH");
+
+
+                }
+            }
+
+            resetPreSliceModeFlag();
+
+
             break;
         case BUTTON4:
             currentDigit = '4';
@@ -1157,7 +1392,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetDlgItemText(hWnd, NUM_USE_DAYS_EDITTEXT, L"");
             productSelected = false;
             prePackOn = false;
-
             toggleSearch = false;
             SetDlgItemText(hWnd, BUTTON_SEARCH, L"SEARCH");
 
